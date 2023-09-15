@@ -52,6 +52,9 @@ def jtPortfolio():
 def ykPortfolio():
     return render_template('yk-portfolio.html')
 
+@app.route("/supervisor")
+def supervisor():
+    return render_template('supervisor.html')
 
 # @app.route("/addemp", methods=['POST'])
 # def AddEmp():
