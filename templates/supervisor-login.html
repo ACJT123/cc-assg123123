@@ -2,10 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Admin Login | TARUMT</title>
+    <title>Supervisor Login | TARUMT</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <meta content="" name="keywords" />
-    <meta content="" name="description" />
+    <!-- Add your meta tags and stylesheets here -->
 
     <!-- Favicon -->
     <link href="{{ url_for('static', filename='img/logo.png/') }}" rel="icon" />
@@ -130,20 +129,20 @@
           >
             <div class="pe-lg-0" style="max-width: 700px">
               <div class="section-title text-start">
-                <h1 class="display-5 mb-4">Admin Login</h1>
+                <h1 class="display-5 mb-4">Supervisor Login</h1>
               </div>
               <p class="mb-4 pb-2">
-                Please enter your email and password to login.
+                Please enter your Supervisor ID and password to login.
               </p>
-              <form action="/login">
+              <form action="/supervisor-login">
                 <div class="row g-3">
                   <div class="col-12">
                     <input
-                      id="email"
-                      name="email"
-                      type="email"
+                      id="supervisor_id"
+                      name="supervisor_id"
+                      type="text"
                       class="form-control border-0"
-                      placeholder="Your Email"
+                      placeholder="Your Supervisor ID"
                       style="height: 55px"
                     />
                   </div>

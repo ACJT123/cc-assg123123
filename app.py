@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, redirect, render_template, request, url_for
 import mysql.connector
 import os
 import boto3
@@ -9,6 +9,7 @@ app = Flask(__name__)
 bucket = custombucket
 region = customregion
 
+
 db_conn = mysql.connector.connect(
     host=customhost,
     port=3306,
@@ -17,7 +18,7 @@ db_conn = mysql.connector.connect(
     db=customdb
 )
 output = {}
-table = 'employee'
+table = 'supervisor'
 
 @app.route("/", methods=['GET', 'POST'])
 def home():
@@ -31,6 +32,44 @@ def about():
 @app.route("/student")
 def student():
     return render_template('student.html')
+
+@app.route("/adminLogin")
+def adminLogin(msg=""):
+    return render_template('adminLogin.html', msg=msg)
+
+@app.route("/login", methods=['GET'])
+def login():
+    # Get user input email and password from HTML form
+    email = request.args.get('email')
+    password = request.args.get('password')
+
+    # Console log for debugging
+    print(email)
+    print(password)
+
+    # Check if email exists in accounts table in out database
+    cursor = db_conn.cursor()
+    cursor.execute('SELECT * FROM admin WHERE email = %s', (email,))
+    account = cursor.fetchone()
+
+    # Console log for debugging
+    print(account) # If account not exists, account = None
+
+    # If account exists in accounts table in out database
+    if account:
+        # Check if password correct
+        if password == account[2]:
+            # If password correct, redirect to admin page
+            return redirect(url_for('admin'))
+        else:
+            # If password incorrect, redirect to admin login page with error message
+            msg = 'Account exists but password incorrect'
+            return redirect(url_for('adminLogin', msg=msg))
+    # If account not exists in accounts table in out database
+    else:
+        msg = 'Account does not exists'
+        return redirect(url_for('adminLogin', msg=msg))
+    
 
 @app.route("/xy")
 def xyPortfolio():
@@ -54,7 +93,105 @@ def ykPortfolio():
 
 @app.route("/supervisor")
 def supervisor():
-    return render_template('supervisor.html')
+    return render_template('supervisor-login.html')  
+
+@app.route("/supervisorLogin")
+def supervisorLogin(msg=""):
+    return render_template('supervisor-login.html', msg=msg)
+
+@app.route("/supervisor-login", methods=['GET'])
+def supervisorlogin():
+    # Get user input id and password from HTML form
+    supervisor_id = request.args.get('supervisor_id')
+    password = request.args.get('password')
+
+    # Console log for debugging
+    print(supervisor_id)
+    print(password)
+
+    # Check if supervisor_id exists in supervisor table in out database
+    cursor = db_conn.cursor()
+    cursor.execute('SELECT * FROM supervisor WHERE supervisor_id = %s', (supervisor_id,))
+    account = cursor.fetchone()
+
+    # Console log for debugging
+    print(account) # If account not exists, account = None
+
+    # If account exists in supervisor table in out database
+    if account:
+        # Check if password correct
+        if password == account[1]:
+            # If password correct, redirect to supervisor page
+            return redirect(url_for('supervisorMain', supervisor_id=supervisor_id))
+        else:
+            # If password incorrect, redirect to supervisor login page with error message
+            msg = 'Account exists but password incorrect'
+            return redirect(url_for('supervisorLogin', msg=msg))
+    # If account not exists in supervisor table in out database
+    else:
+        msg = 'Account does not exists'
+        return redirect(url_for('supervisorLogin', msg=msg))
+
+    
+
+@app.route('/supervisor-main/<supervisor_id>')
+def supervisorMain(supervisor_id):
+    print(supervisor_id)
+    cursor = db_conn.cursor()
+    cursor.execute("SELECT * FROM supervisor WHERE supervisor_id = %s", (supervisor_id,))
+    supervisor = cursor.fetchone()
+    
+    # Get students list
+    cursor.execute("SELECT * FROM student WHERE supervisor_id = %s", (supervisor_id,))
+    students = cursor.fetchall()
+
+    print(students, supervisor)
+
+    cursor.close()
+    return render_template('supervisor-main.html', supervisor=supervisor, students=students)
+
+
+@app.route("/evaluate/<student_id>")
+def evaluate(student_id):
+    cursor = db_conn.cursor()
+    cursor.execute("SELECT * FROM student WHERE student_id = %s", (student_id,))
+    students = cursor.fetchall()
+    return render_template('supervisor-evaluate.html' , students=students)
+
+
+@app.route("/submit_evaluation", methods=['POST'])
+def submitEvaluation():
+    student_id = request.form['student_id']
+    sid = request.form['supervisor_id']
+    communication_skills = request.form['communication_skills']
+    technical_skills = request.form['technical_skills']
+    problem_solving = request.form['problem_solving']
+    comments = request.form['comments']
+
+    insert_sql = "INSERT INTO evaluation VALUES (%s, %s, %s, %s, %s, %s)"
+
+    # update the isEvaluated field in student table
+    update_sql = "UPDATE student SET isEvaluated = 1 WHERE student_id = %s"
+    cursor = db_conn.cursor()
+
+    try:
+        cursor.execute(insert_sql, (sid, student_id, communication_skills, technical_skills, problem_solving, comments))
+        cursor.execute(update_sql, (student_id,))
+        db_conn.commit()
+    finally:
+        cursor.close()
+
+    print(sid)
+    return redirect(url_for('supervisorMain', supervisor_id=sid))
+
+# solve when refresh page, the data will be inserted again for evaluation
+
+@app.route("/supervisor-logout")
+def studentLogout():
+    return render_template('index.html')
+
+
+
 
 # @app.route("/addemp", methods=['POST'])
 # def AddEmp():
