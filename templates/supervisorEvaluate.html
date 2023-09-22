@@ -18,6 +18,10 @@
     <!-- Customized Bootstrap Stylesheet -->
     <link href="{{ url_for('static', filename='css/bootstrap.min.css/') }}" rel="stylesheet" />
     <style>
+        .container {
+            margin-top: 50px;
+            padding: 0 20%;
+        }
         /* Add some basic styling to the sidebar */
         .sidebar-panel {
             height: 100%;
@@ -90,9 +94,12 @@
 </head>
 <body>
     <div class="container">
-        <h2>Internship Report Evaluation</h2>
+        <h2
+            style="text-align: center; margin-bottom: 20px;"
+        >Progress Report Evaluation</h2>
+        <div id="error-message" class="text-danger"></div>
         {% for student in students %}
-        <form action="/submit_evaluation" method="POST">
+        <form action="/submit_evaluation" method="POST" onsubmit="return validateForm();">
             <!-- Student Information (You can retrieve this from the database) -->
             <div class="mb-3">
                 <label for="student_id" class="form-label">Student ID</label>
@@ -103,9 +110,9 @@
                 <input type="text" class="form-control" id="student_name" name="student_name" value="{{ student[1] }}" readonly>
             </div>
 
-            <div class="mb-3">
+            <div class="mb-3" style="display: none;">
                 <label for="supervisor_id" class="form-label"></label>
-                <input type="text" class="form-control" id="supervisor_id" name="supervisor_id" value="{{ student[3] }}" readonly>
+                <input type="text" class="form-control" id="supervisor_id" name="supervisor_id" value="{{ student[9] }}" readonly>
             </div>
             
             <!-- Evaluation Criteria -->
@@ -130,9 +137,38 @@
             </div>
             
             <!-- Submit Button -->
-            <button type="submit" class="btn btn-primary">Submit Evaluation</button>
+            <div
+                style="text-align: center; margin-top: 20px; margin-bottom: 20px;"
+            >
+                <button style="margin: 0 20px" type="reset" class="btn btn-secondary text-light">Reset</button>
+                <button type="submit" class="btn btn-primary text-light">Submit Evaluation</button>
+            </div>
+
         </form>
         {% endfor %}
     </div>
+    <script>
+        function validateForm() {
+            // Get the values of the input fields
+            var communicationSkills = document.getElementById("communication_skills").value;
+            var technicalSkills = document.getElementById("technical_skills").value;
+            var problemSolving = document.getElementById("problem_solving").value;
+            var comments = document.getElementById("comments").value;
+
+            // Check if any of the fields are empty
+            if (communicationSkills === "" || technicalSkills === "" || problemSolving === "" || comments === "") {
+                // Display an error message
+                var errorMessage = "All fields are required.";
+                document.getElementById("error-message").innerHTML = errorMessage;
+
+                // Prevent the form from submitting
+                return false;
+            } else {
+                // Clear any previous error messages
+                document.getElementById("error-message").innerHTML = "";
+                return true; // Allow the form to submit
+            }
+        }
+    </script>
 </body>
 </html>

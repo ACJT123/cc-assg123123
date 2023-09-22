@@ -134,12 +134,12 @@
               <p class="mb-4 pb-2">
                 Please enter your Supervisor ID and password to login.
               </p>
-              <form action="/supervisor-login">
+              <form action="/supervisorLogin" onsubmit="return validateForm()">
                 <div class="row g-3">
                   <div class="col-12">
                     <input
-                      id="supervisor_id"
-                      name="supervisor_id"
+                      id="id"
+                      name="id"
                       type="text"
                       class="form-control border-0"
                       placeholder="Your Supervisor ID"
@@ -188,16 +188,32 @@
     <script src="{{ url_for('static', filename='js/main.js/') }}"></script>
 
     <script>
-      // Get msg and type from url
-      const urlParams = new URLSearchParams(window.location.search);
-      const msg = urlParams.get('msg');
+      function submitLogin() {
+        // Select input fields
+        const adminIdInput = document.getElementById('admin_id');
+        const passwordInput = document.getElementById('password');
 
-      // If msg and type exist, show alert
-      if (msg) {
-        const alert = document.getElementById('alert-container');
-        alert.classList.remove('d-none');
-        const alertp = document.getElementById('alert-text');
-        alertp.innerHTML = msg;
+        // Select alert container
+        const alertContainer = document.getElementById('alert-container');
+        const alertText = document.getElementById('alert-text');
+
+        if (adminIdInput.value === '') {
+          alertContainer.classList.remove('d-none');
+          alertText.innerHTML = 'Please enter your id!';
+          return false;
+        } else {
+          alertContainer.classList.add('d-none');
+        }
+
+        if (passwordInput.value === '') {
+          alertContainer.classList.remove('d-none');
+          alertText.innerHTML = 'Please enter your password!';
+          return false;
+        } else {
+          alertContainer.classList.add('d-none');
+        }
+
+        return true;
       }
     </script>
   </body>
