@@ -172,15 +172,12 @@ def studentLogin():
     id = request.args.get('id')
     password = request.args.get('password')
 
-    print("id",id)
-    print("pw",password)
-
     cursor = db_conn.cursor()
     cursor.execute('SELECT * FROM student WHERE id = %s', (id,))
     account = cursor.fetchone()
 
     if account:
-        if password == account[3]:
+        if password == account[4]:
             return redirect(url_for('student', id=id))
         else:
             msg = 'Account exists but password incorrect'
@@ -196,8 +193,80 @@ def student(id):
     account = cursor.fetchone()
     cursor.execute('SELECT * FROM supervisor')
     supervisor = cursor.fetchall()
+    
+    # Get the success message from the query parameters
+    success_message = request.args.get('success_message', None)
 
-    return render_template('student.html', account=account, supervisors=supervisor)
+    return render_template('student.html', account=account, supervisors=supervisor, success_message=success_message)
+
+@app.route("/select-supervisor", methods=['POST'])
+def selectSupervisor():
+    id = request.form['id']
+    supervisor = request.form['supervisor']
+    cursor = db_conn.cursor()
+    cursor.execute('UPDATE student SET supervisor_id = %s WHERE id = %s', (supervisor, id))
+    db_conn.commit()
+    
+    # Set a success message
+    success_message = "Supervisor selection was successful!"
+    
+    # Redirect to the student page with the success message as a query parameter
+    return redirect(url_for('student', id=id, success_message=success_message))
+
+
+
+@app.route("/studentProfile/<student_id>")
+def studentProfile(student_id):
+    # Connect to MySQL database
+    cursor = db_conn.cursor()
+
+    try:
+
+        cursor.execute('SELECT * FROM student WHERE id = %s', (student_id,))
+        account = cursor.fetchone() 
+
+
+        cursor.execute('SELECT * FROM supervisor WHERE id = %s', (account[9],))
+        supervisor = cursor.fetchone() 
+    finally:
+        cursor.close()
+
+    print(account[0])
+    return render_template('studentProfile.html', student=account, supervisor=supervisor)
+
+
+@app.route("/editStudentProfile/<student_id>")
+def editStudentProfile(student_id):
+
+    # Get user input name, email and phone number from HTML form
+    name = request.args.get('name')
+    email = request.args.get('email')
+    phone = request.args.get('phone')
+
+    # Connect to MySQL database
+    cursor = db_conn.cursor()
+
+    try:
+        cursor.execute('UPDATE student SET name = %s, email = %s, phone_number = %s WHERE id = %s', (name, email, phone, student_id))
+        db_conn.commit()
+
+    finally:
+        cursor.close()
+
+    return redirect(url_for('studentProfile', student_id=student_id))
+
+
+# Admin logout function
+@app.route("/studentLogout")
+def studentLogout():
+    return redirect(url_for('studentLoginPage'))
+
+
+
+
+
+
+
 
 
 @app.route("/adminLogin")
